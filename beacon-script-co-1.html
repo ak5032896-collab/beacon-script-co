@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Beacon Script Co. — Words That Work. Stories That Sell.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --black: #080808;
+    --black2: #0f0f0f;
+    --gold: #D4A843;
+    --gold-light: #F0C96A;
+    --gold-dim: #8a6b25;
+    --white: #F5F2EC;
+    --white-dim: #a09a90;
+    --border: rgba(212,168,67,0.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom Cursor */
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    pointer-events: none;
+  }
+  .cursor-dot {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+    transition: transform 0.18s ease, width 0.3s, height 0.3s, opacity 0.3s;
+  }
+  body:has(a:hover) .cursor-ring,
+  body:has(button:hover) .cursor-ring {
+    width: 56px; height: 56px; opacity: 0.8;
+  }
+
+  /* Noise grain overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.022;
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 6vw;
+    background: linear-gradient(to bottom, rgba(8,8,8,0.95), transparent);
+    backdrop-filter: blur(2px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s, background 0.4s;
+  }
+  nav.scrolled {
+    border-color: var(--border);
+    background: rgba(8,8,8,0.97);
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.12em;
+    color: var(--white);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--white-dim); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    background: var(--gold);
+    color: var(--black);
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 10px 22px;
+    border: none; cursor: none;
+    text-decoration: none;
+    transition: background 0.25s, transform 0.2s;
+  }
+  .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 0 6vw;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 30%, rgba(212,168,67,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(212,168,67,0.04) 0%, transparent 60%);
+  }
+  .hero-lines {
+    position: absolute; inset: 0; overflow: hidden;
+    opacity: 0.06;
+  }
+  .hero-lines::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: 50%;
+    width: 1px; height: 200%;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+    transform: rotate(-15deg);
+    animation: lineDrift 10s ease-in-out infinite alternate;
+  }
+  .hero-lines::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: 30%;
+    width: 1px; height: 200%;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+    transform: rotate(8deg);
+    animation: lineDrift 14s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes lineDrift {
+    from { transform: rotate(-15deg) translateX(-20px); }
+    to { transform: rotate(-15deg) translateX(20px); }
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.2s forwards;
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 11vw, 10rem);
+    line-height: 0.92;
+    letter-spacing: 0.03em;
+    color: var(--white);
+    opacity: 0;
+    animation: fadeUp 0.9s 0.4s forwards;
+  }
+  .hero-title .gold { color: var(--gold); }
+  .hero-title .italic {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9em;
+  }
+  .hero-sub {
+    margin-top: 28px;
+    max-width: 540px;
+    font-size: 1.05rem; line-height: 1.75;
+    color: var(--white-dim);
+    opacity: 0;
+    animation: fadeUp 0.9s 0.6s forwards;
+  }
+  .hero-ctas {
+    margin-top: 48px;
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.9s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--black);
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 16px 36px;
+    border: none; cursor: none; text-decoration: none;
+    transition: background 0.25s, transform 0.2s, box-shadow 0.25s;
+    box-shadow: 0 0 40px rgba(212,168,67,0.2);
+  }
+  .btn-primary:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+    box-shadow: 0 0 60px rgba(212,168,67,0.35);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--white);
+    font-size: 0.78rem; font-weight: 400;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 16px 36px;
+    border: 1px solid rgba(245,242,236,0.25);
+    cursor: none; text-decoration: none;
+    transition: border-color 0.25s, color 0.25s;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    opacity: 0;
+    animation: fadeUp 1s 1.2s forwards;
+  }
+  .hero-scroll span {
+    font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--white-dim);
+  }
+  .scroll-line {
+    width: 1px; height: 50px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.4; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.15); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTION BASE */
+  section { padding: 120px 6vw; }
+
+  .section-label {
+    font-size: 0.65rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before {
+    content: ''; display: block;
+    width: 30px; height: 1px; background: var(--gold);
+  }
+
+  .section-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: 0.03em;
+    color: var(--white);
+  }
+  .section-heading .gold { color: var(--gold); }
+  .section-heading .italic {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* PROBLEM */
+  #problem {
+    background: var(--black2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 64px;
+  }
+  .problem-copy p {
+    font-size: 1.1rem; line-height: 1.85;
+    color: var(--white-dim);
+    margin-bottom: 20px;
+  }
+  .problem-copy p strong { color: var(--white); font-weight: 500; }
+  .problem-pains {
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .pain-item {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 22px 24px;
+    border: 1px solid var(--border);
+    background: rgba(212,168,67,0.03);
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .pain-item:hover {
+    border-color: rgba(212,168,67,0.35);
+    background: rgba(212,168,67,0.06);
+  }
+  .pain-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; color: var(--gold-dim);
+    line-height: 1; flex-shrink: 0;
+  }
+  .pain-text { font-size: 0.92rem; line-height: 1.7; color: var(--white-dim); }
+  .pain-text strong { color: var(--white); font-weight: 500; }
+
+  /* SERVICES */
+  #services { background: var(--black); }
+  .services-intro {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: end;
+    margin-bottom: 72px;
+  }
+  .services-intro p {
+    font-size: 1rem; line-height: 1.85; color: var(--white-dim);
+    align-self: end;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+  .service-card {
+    background: var(--black);
+    padding: 52px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+  }
+  .service-card:hover { background: rgba(212,168,67,0.04); }
+  .service-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s ease;
+  }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-icon {
+    font-size: 2rem; margin-bottom: 24px;
+    display: block;
+  }
+  .service-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4.5rem;
+    color: rgba(212,168,67,0.08);
+    position: absolute; top: 20px; right: 24px;
+    line-height: 1;
+    transition: color 0.4s;
+  }
+  .service-card:hover .service-num { color: rgba(212,168,67,0.14); }
+  .service-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.9rem; letter-spacing: 0.04em;
+    color: var(--white);
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .service-desc {
+    font-size: 0.88rem; line-height: 1.8;
+    color: var(--white-dim);
+    margin-bottom: 28px;
+  }
+  .service-deliverables {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .service-deliverables li {
+    font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold-dim);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .service-deliverables li::before {
+    content: '→'; color: var(--gold);
+  }
+
+  /* LEAD MAGNET */
+  #offer {
+    background: var(--black2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  #offer::before {
+    content: 'FREE';
+    position: absolute;
+    right: -2vw; top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(8rem, 20vw, 18rem);
+    color: rgba(212,168,67,0.025);
+    line-height: 1;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .offer-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .offer-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 6px 14px;
+    margin-bottom: 28px;
+  }
+  .offer-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    line-height: 0.95;
+    color: var(--white);
+    margin-bottom: 24px;
+  }
+  .offer-heading .gold { color: var(--gold); }
+  .offer-body {
+    font-size: 1rem; line-height: 1.85;
+    color: var(--white-dim);
+    margin-bottom: 36px;
+  }
+  .offer-body strong { color: var(--white); }
+  .offer-box {
+    border: 1px solid var(--border);
+    padding: 48px;
+    background: rgba(212,168,67,0.03);
+    position: relative;
+  }
+  .offer-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 40px; height: 40px;
+    border-top: 2px solid var(--gold);
+    border-left: 2px solid var(--gold);
+  }
+  .offer-box::after {
+    content: '';
+    position: absolute; bottom: 0; right: 0;
+    width: 40px; height: 40px;
+    border-bottom: 2px solid var(--gold);
+    border-right: 2px solid var(--gold);
+  }
+  .offer-list { list-style: none; margin-bottom: 36px; display: flex; flex-direction: column; gap: 16px; }
+  .offer-list li {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 0.9rem; color: var(--white-dim);
+  }
+  .offer-list li .check {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-size: 0.65rem;
+  }
+  .offer-form { display: flex; flex-direction: column; gap: 12px; }
+  .offer-form input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 14px 18px;
+    outline: none;
+    transition: border-color 0.25s;
+    width: 100%;
+  }
+  .offer-form input::placeholder { color: var(--white-dim); }
+  .offer-form input:focus { border-color: var(--gold); }
+  .offer-form .btn-primary { width: 100%; text-align: center; font-size: 0.82rem; padding: 16px; }
+
+  /* TEAM */
+  #team { background: var(--black); }
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 72px;
+  }
+  .team-card {
+    border: 1px solid var(--border);
+    padding: 52px 48px;
+    position: relative;
+    transition: border-color 0.4s;
+    overflow: hidden;
+  }
+  .team-card:hover { border-color: rgba(212,168,67,0.4); }
+  .team-card-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 70% at 80% 20%, rgba(212,168,67,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .team-card:hover .team-card-bg { opacity: 1; }
+  .team-avatar {
+    width: 72px; height: 72px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .team-avatar::after {
+    content: '';
+    position: absolute; bottom: -4px; right: -4px;
+    width: 100%; height: 100%;
+    border: 1px solid var(--gold);
+    opacity: 0.3;
+  }
+  .team-initials {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+  .team-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.9rem; font-weight: 600;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .team-role {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .team-bio {
+    font-size: 0.9rem; line-height: 1.85;
+    color: var(--white-dim);
+  }
+
+  /* TESTIMONIALS */
+  #testimonials { background: var(--black2); border-top: 1px solid var(--border); }
+  .testimonials-coming {
+    margin-top: 64px;
+    border: 1px dashed rgba(212,168,67,0.2);
+    padding: 64px;
+    text-align: center;
+  }
+  .testimonials-placeholder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 48px;
+  }
+  .testi-card {
+    border: 1px solid rgba(212,168,67,0.1);
+    padding: 36px 28px;
+    background: rgba(212,168,67,0.02);
+  }
+  .testi-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 16px; letter-spacing: 2px; }
+  .testi-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-style: italic; line-height: 1.7;
+    color: rgba(245,242,236,0.4);
+    margin-bottom: 24px;
+  }
+  .testi-author { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold-dim); }
+  .testi-placeholder {
+    display: inline-block;
+    font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-top: 24px;
+  }
+
+  /* FINAL CTA */
+  #cta {
+    background: var(--black);
+    text-align: center;
+    padding: 140px 6vw;
+    position: relative;
+    overflow: hidden;
+  }
+  #cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(212,168,67,0.07) 0%, transparent 70%);
+  }
+  .cta-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 7.5rem);
+    line-height: 0.95;
+    margin-bottom: 28px;
+  }
+  .cta-heading .gold { color: var(--gold); }
+  .cta-sub {
+    max-width: 520px; margin: 0 auto 48px;
+    font-size: 1rem; line-height: 1.8;
+    color: var(--white-dim);
+  }
+  .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  /* FOOTER */
+  footer {
+    background: var(--black2);
+    border-top: 1px solid var(--border);
+    padding: 64px 6vw 40px;
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 60px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .footer-brand .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem; letter-spacing: 0.1em;
+    color: var(--white); margin-bottom: 16px; display: block;
+  }
+  .footer-brand .logo span { color: var(--gold); }
+  .footer-brand p {
+    font-size: 0.85rem; line-height: 1.8; color: var(--white-dim);
+    max-width: 280px; margin-bottom: 24px;
+  }
+  .footer-tag {
+    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold-dim);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    display: inline-block;
+  }
+  .footer-col h4 {
+    font-size: 0.68rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 20px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .footer-col ul li a {
+    font-size: 0.85rem; color: var(--white-dim);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .footer-col ul li a:hover { color: var(--white); }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-bottom p { font-size: 0.75rem; color: var(--white-dim); }
+  .footer-bottom span { color: var(--gold); }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .problem-grid, .services-intro, .offer-inner, .team-grid, .footer-top { grid-template-columns: 1fr; gap: 48px; }
+    .services-grid { grid-template-columns: 1fr; }
+    .testimonials-placeholder-grid { grid-template-columns: 1fr; }
+    nav { padding: 18px 5vw; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor">
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">BEACON <span>SCRIPT</span> CO.</a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#offer">Free Script</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#testimonials">Results</a></li>
+  </ul>
+  <a href="#offer" class="nav-cta">Claim Free Script</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-lines"></div>
+  <p class="hero-eyebrow">Pan-India · Remote-First · Premium Scriptwriting Agency</p>
+  <h1 class="hero-title">
+    Words That <span class="gold italic">Work.</span><br>
+    Stories That <span class="gold">Sell.</span>
+  </h1>
+  <p class="hero-sub">
+    We don't just write scripts — we architect attention. From viral hooks to audience-retaining storytelling, Beacon Script Co. is the creative engine behind creators and brands who refuse to be ignored.
+  </p>
+  <div class="hero-ctas">
+    <a href="#offer" class="btn-primary">Get Your Free Sample Script</a>
+    <a href="#services" class="btn-ghost">Explore Services</a>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- PROBLEM / AGITATION -->
+<section id="problem">
+  <div class="reveal">
+    <p class="section-label">The Hard Truth</p>
+    <h2 class="section-heading">Your Content <span class="gold italic">Isn't</span> The<br>Problem. Your <span class="gold">Script</span> Is.</h2>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-copy reveal">
+      <p>You're posting consistently. You're showing up every week. You're doing everything the algorithm supposedly wants — and yet, your views plateau, your audience won't grow, and your brand deals aren't coming.</p>
+      <p><strong>Here's what nobody's telling you:</strong> great content starts before the camera ever rolls. It starts with a script that <em>hooks</em> in the first 3 seconds, <em>holds</em> through every beat, and <em>converts</em> a viewer into a follower, a follower into a customer.</p>
+      <p>Without that? You're just shouting into the void — and the void doesn't pay.</p>
+    </div>
+    <div class="problem-pains reveal">
+      <div class="pain-item">
+        <span class="pain-num">01</span>
+        <p class="pain-text"><strong>The hook isn't hitting.</strong> You lose 70% of viewers in the first 10 seconds and you don't even know why.</p>
+      </div>
+      <div class="pain-item">
+        <span class="pain-num">02</span>
+        <p class="pain-text"><strong>Ideas dry up fast.</strong> You spend more time figuring out <em>what</em> to make than actually making it.</p>
+      </div>
+      <div class="pain-item">
+        <span class="pain-num">03</span>
+        <p class="pain-text"><strong>Your message is muddled.</strong> You know what you want to say — but it never quite lands the way you imagined.</p>
+      </div>
+      <div class="pain-item">
+        <span class="pain-num">04</span>
+        <p class="pain-text"><strong>Growth is stagnant.</strong> Your channel or page is stuck — and you're out of answers on how to fix it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-intro">
+    <div class="reveal">
+      <p class="section-label">What We Do</p>
+      <h2 class="section-heading">Three Ways We <span class="gold">Elevate</span><br>Your <span class="italic gold">Content</span></h2>
+    </div>
+    <p class="reveal">We exist at the intersection of storytelling science and creative artistry. Our services are designed to solve the three core challenges every creator faces: execution, strategy, and clarity.</p>
+  </div>
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <span class="service-num">01</span>
+      <span class="service-icon">✍️</span>
+      <h3 class="service-title">Custom Scriptwriting</h3>
+      <p class="service-desc">You bring the idea — we build the machine. Our writers transform raw concepts into fully-structured, psychologically engineered scripts designed to hook fast, hold long, and convert hard.</p>
+      <ul class="service-deliverables">
+        <li>Attention-engineered viral hooks</li>
+        <li>Full script with pacing notes</li>
+        <li>Platform-specific formatting</li>
+        <li>Unlimited revision rounds</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <span class="service-num">02</span>
+      <span class="service-icon">🗺️</span>
+      <h3 class="service-title">Content Strategy & Ideation</h3>
+      <p class="service-desc">Stop guessing what to make next. We build a bespoke content roadmap aligned to your niche, your audience psychology, and the platform's algorithm — so every video has a purpose and a plan.</p>
+      <ul class="service-deliverables">
+        <li>30–60 day content calendar</li>
+        <li>Niche-specific topic clusters</li>
+        <li>Hook bank & title swipe file</li>
+        <li>Trend & opportunity mapping</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <span class="service-num">03</span>
+      <span class="service-icon">🔍</span>
+      <h3 class="service-title">Channel & Page Analysis</h3>
+      <p class="service-desc">Something's broken — you just don't know what. We go deep into your analytics, content history, and positioning to diagnose exactly what's killing your growth and hand you a clear action plan.</p>
+      <ul class="service-deliverables">
+        <li>Full content performance audit</li>
+        <li>Hook & retention analysis</li>
+        <li>Competitor benchmarking</li>
+        <li>Actionable growth roadmap</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- LEAD MAGNET / OFFER -->
+<section id="offer">
+  <div class="offer-inner">
+    <div class="reveal">
+      <span class="offer-badge">Zero Risk. Zero Cost.</span>
+      <h2 class="offer-heading">Experience Our<br>Quality <span class="gold">First.</span><br>Pay Later.</h2>
+      <p class="offer-body">We know trust is earned, not demanded. That's why we're offering every new client a <strong>completely free sample script</strong> — fully written, fully formatted, zero strings attached. See exactly what we do before spending a single rupee.</p>
+      <p class="offer-body">If it blows you away (it will), we talk next steps. If not, you keep the script and we part as friends. That's how confident we are in what we create.</p>
+    </div>
+    <div class="offer-box reveal">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:0.05em;color:var(--white);margin-bottom:28px;">Claim Your Free Script</h3>
+      <ul class="offer-list">
+        <li><span class="check">✓</span> One complete sample script — written for your niche</li>
+        <li><span class="check">✓</span> Custom hook crafted for your platform</li>
+        <li><span class="check">✓</span> Full structure + pacing notes included</li>
+        <li><span class="check">✓</span> Delivered within 72 hours</li>
+        <li><span class="check">✓</span> Absolutely free — no credit card required</li>
+      </ul>
+      <div class="offer-form">
+        <input type="text" placeholder="Your Name" />
+        <input type="email" placeholder="Your Email Address" />
+        <input type="text" placeholder="Your YouTube / Instagram Handle" />
+        <input type="text" placeholder="Your Niche / Topic" />
+        <a href="mailto:hello@beaconscriptco.com" class="btn-primary">→ Send Me My Free Script</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="reveal" style="text-align:center;max-width:600px;margin:0 auto 0;">
+    <p class="section-label" style="justify-content:center;">The Minds Behind The Words</p>
+    <h2 class="section-heading">Built By <span class="gold italic">Creators.</span><br>Driven By <span class="gold">Results.</span></h2>
+    <p style="font-size:0.95rem;line-height:1.85;color:var(--white-dim);margin-top:24px;">We're not a faceless agency. We're a tight-knit team of storytellers, strategists, and operators obsessed with one thing: making your content impossible to ignore.</p>
+  </div>
+  <div class="team-grid" style="margin-top:72px;">
+    <div class="team-card reveal">
+      <div class="team-card-bg"></div>
+      <div class="team-avatar"><span class="team-initials">JK</span></div>
+      <h3 class="team-name">Jatin Kukreja</h3>
+      <p class="team-role">Founder & Chief Creative Officer</p>
+      <p class="team-bio">The visionary who started Beacon Script Co. with a simple belief: every idea deserves to be told brilliantly. Jatin leads creative direction, script development, and content strategy — blending the psychology of storytelling with the mechanics of virality. He's the reason your hooks hit and your audience stays.</p>
+    </div>
+    <div class="team-card reveal">
+      <div class="team-card-bg"></div>
+      <div class="team-avatar"><span class="team-initials">AS</span></div>
+      <h3 class="team-name">Amarjeet Sharma</h3>
+      <p class="team-role">Chief Operations Officer</p>
+      <p class="team-bio">The operational backbone that makes everything run like clockwork. Amarjeet oversees client communication, project management, and end-to-end delivery — ensuring every script reaches you on time, on brief, and to an uncompromisingly high standard. He's the reason we never miss a deadline.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="reveal" style="text-align:center;">
+    <p class="section-label" style="justify-content:center;">Client Results</p>
+    <h2 class="section-heading">Creators Who <span class="gold italic">Trusted</span><br>The <span class="gold">Script</span></h2>
+  </div>
+  <div class="testimonials-placeholder-grid reveal">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"The hook they wrote for my YouTube video got 3x the average watch time I usually see. These guys actually get what makes content tick."</p>
+      <p class="testi-author">— Verified Client · Finance Creator</p>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"I went from 20K to 85K subscribers in 4 months after implementing their content strategy. I genuinely couldn't have done it without Beacon."</p>
+      <p class="testi-author">— Verified Client · Lifestyle Creator</p>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Our brand had zero social presence. Six weeks in, one of our scripted reels crossed 2M views. The ROI speaks for itself."</p>
+      <p class="testi-author">— Verified Client · D2C Brand</p>
+    </div>
+  </div>
+  <div class="testimonials-coming reveal" style="margin-top:40px;">
+    <p class="testi-placeholder">✦ &nbsp; More client results coming soon &nbsp; ✦</p>
+    <p style="font-size:0.82rem;color:var(--white-dim);margin-top:12px;">We're busy writing scripts. Our clients' results will do the talking.</p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="cta">
+  <div class="reveal">
+    <h2 class="cta-heading">
+      Your Next Viral<br><span class="gold italic">Script</span> Is One<br>Click Away.
+    </h2>
+    <p class="cta-sub">Stop leaving growth on the table. Let Beacon Script Co. turn your ideas into content that commands attention, builds audiences, and drives real results.</p>
+    <div class="cta-buttons">
+      <a href="#offer" class="btn-primary">Claim Your Free Sample Script</a>
+      <a href="mailto:hello@beaconscriptco.com" class="btn-ghost">Book a Consultation</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <span class="logo">BEACON <span>SCRIPT</span> CO.</span>
+      <p>Pan-India's premium remote-first scriptwriting and content strategy agency. We turn ideas into stories that build empires.</p>
+      <span class="footer-tag">✦ Pan-India · Remote-First</span>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#services">Custom Scriptwriting</a></li>
+        <li><a href="#services">Content Strategy</a></li>
+        <li><a href="#services">Channel Analysis</a></li>
+        <li><a href="#offer">Free Sample Script</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <ul>
+        <li><a href="mailto:hello@beaconscriptco.com">hello@beaconscriptco.com</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">LinkedIn</a></li>
+        <li><a href="#">YouTube</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 <span>Beacon Script Co.</span> All rights reserved.</p>
+    <p>Crafted with intention. Built for creators.</p>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+
+  // Navbar scroll
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => obs.observe(el));
+
+  // Prevent form default
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keydown', e => e.key === 'Enter' && e.preventDefault());
+  });
+</script>
+</body>
+</html>
